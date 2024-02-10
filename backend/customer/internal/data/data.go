@@ -56,3 +56,12 @@ func migrateTable(d *Data) {
 		logg.Println(err)
 	}
 }
+
+func (d *CustomData) GetToken(id interface{}) (string, error) {
+	c := biz.Customer{}
+	result := d.data.mysqlClient.First(&c, id)
+	if result.Error != nil {
+		return "", result.Error
+	}
+	return c.Token, nil
+}

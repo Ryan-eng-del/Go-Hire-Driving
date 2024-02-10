@@ -15,12 +15,12 @@ import (
 
 type CustomerService struct {
 	pb.UnimplementedCustomerServer
-	customData *data.CustomData
+	CustomData *data.CustomData
 }
 
 func NewCustomerService(d *data.CustomData) *CustomerService {
 	return &CustomerService{
-		customData: d,
+		CustomData: d,
 	}
 }
 
@@ -64,7 +64,7 @@ func (s *CustomerService) GetVerifyCode(ctx context.Context, req *pb.GetVerifyCo
 		}, nil
 	}
 
-	if err := s.customData.SetVerifyCode(req.Telephone, reply.Code); err != nil {
+	if err := s.CustomData.SetVerifyCode(req.Telephone, reply.Code); err != nil {
 		return &pb.GetVerifyCodeResponse{
 			Code: 500,
 			Message: "Redis Set 操作失败",
@@ -82,7 +82,7 @@ func (s *CustomerService) GetVerifyCode(ctx context.Context, req *pb.GetVerifyCo
 
 func (s *CustomerService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.LoginResponse, error) {
 
-	code, err := s.customData.GetVerifyCode(req.Telephone)
+	code, err := s.CustomData.GetVerifyCode(req.Telephone)
 	if code == "" || code != req.VerifyCode || err != nil {
 		log.Println(err)
 		return &pb.LoginResponse{
@@ -91,7 +91,7 @@ func (s *CustomerService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.
 			}, nil
 	}
 
-	customer, err := s.customData.GetCustomerByTelephone(req.Telephone)
+	customer, err := s.CustomData.GetCustomerByTelephone(req.Telephone)
 
 	if err != nil {
 		log.Println(err)
@@ -103,7 +103,7 @@ func (s *CustomerService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.
 
 	const durations = 24 * time.Hour
 	
-	token, err := s.customData.GenerateTokenAndSave(customer, durations, biz.Secret)
+	token, err := s.CustomData.GenerateTokenAndSave(customer, durations, biz.Secret)
 
 	if token == "" || err != nil {
 		log.Println(err)
@@ -120,4 +120,8 @@ func (s *CustomerService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.
 		TokenCreateAt: time.Now().Unix(),
 		TokenLife: 24 * 3600,
 	}, nil
+}
+
+func (s *CustomerService) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
+	return &pb.LogoutResponse{}, nil
 }

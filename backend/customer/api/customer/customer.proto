@@ -19,8 +19,17 @@ service Customer {
 			body: "*",
 		};
 	}
+	rpc Logout(LogoutRequest) returns (LogoutResponse) {
+		option (google.api.http) = {
+			get : "/customer/logout",
+		};
+	}
+}
+message LogoutRequest {
 }
 
+message LogoutResponse {
+}
 message LoginRequest {
 	string telephone = 1;
 	string verify_code = 2;

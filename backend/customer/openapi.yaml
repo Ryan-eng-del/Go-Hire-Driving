@@ -54,6 +54,24 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/Status'
+    /customer/logout:
+        get:
+            tags:
+                - Customer
+            operationId: Customer_Logout
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/LogoutResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
 components:
     schemas:
         GetVerifyCodeResponse:
@@ -101,6 +119,9 @@ components:
                 tokenLife:
                     type: integer
                     format: int32
+        LogoutResponse:
+            type: object
+            properties: {}
         Status:
             type: object
             properties:

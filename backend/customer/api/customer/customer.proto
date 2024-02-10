@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package api.customer;
+import "google/api/annotations.proto";
+option go_package = "customer/api/customer;customer";
+option java_multiple_files = true;
+option java_package = "api.customer";
+
+
+service Customer {
+	rpc GetVerifyCode (GetVerifyCodeRequst) returns (GetVerifyCodeResponse) {
+		option (google.api.http) = {
+			get: "/customer/get-verify-code/{telephone}"
+		};
+	}
+	rpc Login(LoginRequest) returns (LoginResponse) {
+		option (google.api.http) = {
+			post : "/customer/login",
+			body: "*",
+		};
+	}
+}
+
+message LoginRequest {
+	string telephone = 1;
+	string verify_code = 2;
+}
+
+message LoginResponse {
+	int64 code = 1;
+	string message = 2;
+	string token = 3;
+	int64 token_create_at = 4;
+	int32 token_life = 5;
+}
+
+message GetVerifyCodeRequst {
+	string telephone = 1;
+}
+
+message GetVerifyCodeResponse {
+	int32 code = 1;
+	string message = 2;
+	string verify_code = 3;
+	int32 verify_code_time = 4; 
+	int32 verify_code_life = 5;
+}

@@ -121,7 +121,11 @@ components:
                     format: int32
         LogoutResponse:
             type: object
-            properties: {}
+            properties:
+                code:
+                    type: string
+                message:
+                    type: string
         Status:
             type: object
             properties:

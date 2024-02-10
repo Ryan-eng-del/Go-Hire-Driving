@@ -10,7 +10,9 @@ import (
 	"regexp"
 	"time"
 
+	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
+	jwtv4 "github.com/golang-jwt/jwt/v4"
 )
 
 type CustomerService struct {
@@ -123,5 +125,30 @@ func (s *CustomerService) Login(ctx context.Context, req *pb.LoginRequest) (*pb.
 }
 
 func (s *CustomerService) Logout(ctx context.Context, req *pb.LogoutRequest) (*pb.LogoutResponse, error) {
-	return &pb.LogoutResponse{}, nil
+	claims, isExists := jwt.FromContext(ctx)
+	claimsMap := claims.(jwtv4.MapClaims)
+	userId := claimsMap["user_id"]
+
+
+	if !isExists {
+		return &pb.LogoutResponse{
+			Code: 500,
+			Message: "Token 未传递",
+		}, nil
+	}
+
+	err := s.CustomData.DelToken(userId)
+	
+	if err != nil {
+		log.Println(err)
+		return &pb.LogoutResponse{
+			Code: 500,
+			Message: "Token 删除失败",
+		}, nil
+	}
+
+	return &pb.LogoutResponse{
+		Code: 200,
+		Message: "退出登录成功",
+	}, nil
 }

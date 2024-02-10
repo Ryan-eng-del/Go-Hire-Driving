@@ -9,6 +9,7 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/transport"
+	"github.com/go-kratos/kratos/v2/transport/http"
 	jwtv4 "github.com/golang-jwt/jwt/v4"
 )
 
@@ -48,8 +49,6 @@ func ValidateJWT(customerService *service.CustomerService) middleware.Middleware
 			if !ok {
 				return nil, ErrMissingJwtToken
 			}
-
-
 			claimsMap := claims.(jwtv4.MapClaims)
 			userId := claimsMap["jti"]	
 			token, err := customerService.CustomData.GetToken(userId)
@@ -69,6 +68,22 @@ func ValidateJWT(customerService *service.CustomerService) middleware.Middleware
 				return handler(ctx, req)
 			}
 			return nil, ErrWrongContext
+		}
+	}
+}
+
+func AllowCORS() middleware.Middleware {
+	return func(handler middleware.Handler) middleware.Handler {
+		return func(ctx context.Context, req interface{}) (interface{}, error) {
+			if tr, ok := transport.FromServerContext(ctx); ok {
+				ht := tr.(http.Transporter)
+				replyHeader := ht.ReplyHeader()
+				replyHeader.Set("Access-Control-Allow-Origin", "*")
+				replyHeader.Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS,HEAD,OPTIONS,PATCH,PUT,DELETE")
+				replyHeader.Set("Access-Control-Allow-Headers","Content-Type, X-Requested-With, Authorization, Access-control-Allow-Credentials, User-Agent")
+				replyHeader.Set("Access-control-Allow-Credentials", "true")
+			}
+			return handler(ctx, req)
 		}
 	}
 }

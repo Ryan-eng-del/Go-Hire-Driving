@@ -87,7 +87,7 @@ func (d *CustomData) GenerateTokenAndSave(customer *biz.Customer, duration time.
 	if err != nil {
 		return "", err
 	}
-	
+
 	customer.Token = signedToken
 	customer.TokenCreated = sql.NullTime{
 		Valid: true,
@@ -95,4 +95,19 @@ func (d *CustomData) GenerateTokenAndSave(customer *biz.Customer, duration time.
 	}
 	d.data.mysqlClient.Save(customer)
 	return signedToken, nil
+}
+
+func (d *CustomData) DelToken(id interface{}) error  {
+	customer := biz.Customer{}
+	err := d.data.mysqlClient.First(&customer, id).Error
+	if err != nil {
+		return err
+	}
+	customer.Token = ""
+	customer.TokenCreated = sql.NullTime{Valid: false}
+	err = d.data.mysqlClient.Save(&customer).Error
+	if err != nil {
+		return err
+	}
+	return nil
 }

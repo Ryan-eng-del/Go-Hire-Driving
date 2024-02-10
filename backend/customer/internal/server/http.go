@@ -22,7 +22,7 @@ func NewHTTPServer(c *conf.Server, greeter *service.GreeterService, customerServ
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
-			selector.Server(kratosJwt.Server(func(token *jwt.Token) (interface{}, error) {
+			selector.Server(AllowCORS(),kratosJwt.Server(func(token *jwt.Token) (interface{}, error) {
 				return []byte(biz.Secret), nil
 			}), ValidateJWT(customerService)).Match(func (ctx context.Context, operation string) bool {
 				noJWT := map[string]struct{}{

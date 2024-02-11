@@ -10,16 +10,32 @@ import (
 	"github.com/go-kratos/kratos/v2/selector/wrr"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/hashicorp/consul/api"
+	"gorm.io/gorm"
 )
 
 // GreeterUsecase is a Greeter usecase.
 type ValuationBiz struct {
 	log  *log.Helper
+	repo ValuationRepo
+}
+
+type PriceRule struct {
+	gorm.Model
+	CityID uint `json:"city_id"`
+	StartFee int64 `json:"start_fee"`
+	DistanceFee int64 `json:"distance_fee"`
+	DurationFee int64 `json:"duration_fee"`
+	StartAt int `json:"start_at"`
+	EndedAt int `json:"ended_at"`
+}
+
+type ValuationRepo interface {
+	GetRule(cityID int, currentTime int) (*PriceRule, error)
 }
 
 // NewGreeterUsecase new a Greeter usecase.
-func NewValuationBiz(logger log.Logger) *ValuationBiz {
-	return &ValuationBiz{log: log.NewHelper(logger)}
+func NewValuationBiz(repo ValuationRepo, logger log.Logger) *ValuationBiz {
+	return &ValuationBiz{log: log.NewHelper(logger), repo: repo}
 }
 
 

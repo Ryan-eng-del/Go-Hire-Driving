@@ -10,9 +10,13 @@ import (
 	"regexp"
 	"time"
 
+	consul "github.com/go-kratos/kratos/contrib/registry/consul/v2"
 	"github.com/go-kratos/kratos/v2/middleware/auth/jwt"
+	"github.com/go-kratos/kratos/v2/selector"
+	"github.com/go-kratos/kratos/v2/selector/wrr"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	jwtv4 "github.com/golang-jwt/jwt/v4"
+	"github.com/hashicorp/consul/api"
 )
 
 type CustomerService struct {
@@ -38,9 +42,25 @@ func (s *CustomerService) GetVerifyCode(ctx context.Context, req *pb.GetVerifyCo
 	}
 	
 	// 服务间通信 grpc
+	consulConfig := api.DefaultConfig()
+	consulConfig.Address = "localhost:8500"
+	consulClient, err := api.NewClient(consulConfig)
+	consulDiscovery := consul.New(consulClient)
+
+	// 负载均衡 策略
+	selector.SetGlobalSelector(wrr.NewBuilder())
+	
+	if err != nil {
+		return &pb.GetVerifyCodeResponse{
+			Code: 500,
+			Message: "连接服务发现失败",
+		}, nil
+	}
+
 	conn, err := grpc.DialInsecure(
 		context.Background(),
-		grpc.WithEndpoint("localhost:9000"),
+		grpc.WithEndpoint("discovery:///VerifyCode"),
+		grpc.WithDiscovery(consulDiscovery),
 	)	
 
 	if err != nil  {

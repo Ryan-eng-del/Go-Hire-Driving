@@ -19,11 +19,13 @@ var _ = binding.EncodeURL
 
 const _ = http.SupportPackageIsVersion1
 
+const OperationCustomerEstimatePrice = "/api.customer.Customer/EstimatePrice"
 const OperationCustomerGetVerifyCode = "/api.customer.Customer/GetVerifyCode"
 const OperationCustomerLogin = "/api.customer.Customer/Login"
 const OperationCustomerLogout = "/api.customer.Customer/Logout"
 
 type CustomerHTTPServer interface {
+	EstimatePrice(context.Context, *EstimatePriceRequest) (*EstimatePriceResponse, error)
 	GetVerifyCode(context.Context, *GetVerifyCodeRequst) (*GetVerifyCodeResponse, error)
 	Login(context.Context, *LoginRequest) (*LoginResponse, error)
 	Logout(context.Context, *LogoutRequest) (*LogoutResponse, error)
@@ -34,6 +36,7 @@ func RegisterCustomerHTTPServer(s *http.Server, srv CustomerHTTPServer) {
 	r.GET("/customer/get-verify-code/{telephone}", _Customer_GetVerifyCode0_HTTP_Handler(srv))
 	r.POST("/customer/login", _Customer_Login0_HTTP_Handler(srv))
 	r.GET("/customer/logout", _Customer_Logout0_HTTP_Handler(srv))
+	r.POST("/customer/estimate-price", _Customer_EstimatePrice0_HTTP_Handler(srv))
 }
 
 func _Customer_GetVerifyCode0_HTTP_Handler(srv CustomerHTTPServer) func(ctx http.Context) error {
@@ -99,7 +102,30 @@ func _Customer_Logout0_HTTP_Handler(srv CustomerHTTPServer) func(ctx http.Contex
 	}
 }
 
+func _Customer_EstimatePrice0_HTTP_Handler(srv CustomerHTTPServer) func(ctx http.Context) error {
+	return func(ctx http.Context) error {
+		var in EstimatePriceRequest
+		if err := ctx.Bind(&in); err != nil {
+			return err
+		}
+		if err := ctx.BindQuery(&in); err != nil {
+			return err
+		}
+		http.SetOperation(ctx, OperationCustomerEstimatePrice)
+		h := ctx.Middleware(func(ctx context.Context, req interface{}) (interface{}, error) {
+			return srv.EstimatePrice(ctx, req.(*EstimatePriceRequest))
+		})
+		out, err := h(ctx, &in)
+		if err != nil {
+			return err
+		}
+		reply := out.(*EstimatePriceResponse)
+		return ctx.Result(200, reply)
+	}
+}
+
 type CustomerHTTPClient interface {
+	EstimatePrice(ctx context.Context, req *EstimatePriceRequest, opts ...http.CallOption) (rsp *EstimatePriceResponse, err error)
 	GetVerifyCode(ctx context.Context, req *GetVerifyCodeRequst, opts ...http.CallOption) (rsp *GetVerifyCodeResponse, err error)
 	Login(ctx context.Context, req *LoginRequest, opts ...http.CallOption) (rsp *LoginResponse, err error)
 	Logout(ctx context.Context, req *LogoutRequest, opts ...http.CallOption) (rsp *LogoutResponse, err error)
@@ -111,6 +137,19 @@ type CustomerHTTPClientImpl struct {
 
 func NewCustomerHTTPClient(client *http.Client) CustomerHTTPClient {
 	return &CustomerHTTPClientImpl{client}
+}
+
+func (c *CustomerHTTPClientImpl) EstimatePrice(ctx context.Context, in *EstimatePriceRequest, opts ...http.CallOption) (*EstimatePriceResponse, error) {
+	var out EstimatePriceResponse
+	pattern := "/customer/estimate-price"
+	path := binding.EncodeURL(pattern, in, false)
+	opts = append(opts, http.Operation(OperationCustomerEstimatePrice))
+	opts = append(opts, http.PathTemplate(pattern))
+	err := c.cc.Invoke(ctx, "POST", path, in, &out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return &out, err
 }
 
 func (c *CustomerHTTPClientImpl) GetVerifyCode(ctx context.Context, in *GetVerifyCodeRequst, opts ...http.CallOption) (*GetVerifyCodeResponse, error) {

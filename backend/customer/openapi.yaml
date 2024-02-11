@@ -6,6 +6,30 @@ info:
     title: Customer API
     version: 0.0.1
 paths:
+    /customer/estimate-price:
+        post:
+            tags:
+                - Customer
+            operationId: Customer_EstimatePrice
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/EstimatePriceRequest'
+                required: true
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/EstimatePriceResponse'
+                default:
+                    description: Default error response
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Status'
     /customer/get-verify-code/{telephone}:
         get:
             tags:
@@ -74,6 +98,26 @@ paths:
                                 $ref: '#/components/schemas/Status'
 components:
     schemas:
+        EstimatePriceRequest:
+            type: object
+            properties:
+                origin:
+                    type: string
+                destination:
+                    type: string
+        EstimatePriceResponse:
+            type: object
+            properties:
+                origin:
+                    type: string
+                destination:
+                    type: string
+                price:
+                    type: string
+                code:
+                    type: string
+                message:
+                    type: string
         GetVerifyCodeResponse:
             type: object
             properties:

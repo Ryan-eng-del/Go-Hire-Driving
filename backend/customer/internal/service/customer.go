@@ -22,11 +22,13 @@ import (
 type CustomerService struct {
 	pb.UnimplementedCustomerServer
 	CustomData *data.CustomData
+	CustomerBiz *biz.CustomerBiz
 }
 
-func NewCustomerService(d *data.CustomData) *CustomerService {
+func NewCustomerService(d *data.CustomData,customerBiz *biz.CustomerBiz) *CustomerService {
 	return &CustomerService{
 		CustomData: d,
+		CustomerBiz: customerBiz,
 	}
 }
 
@@ -49,7 +51,7 @@ func (s *CustomerService) GetVerifyCode(ctx context.Context, req *pb.GetVerifyCo
 
 	// 负载均衡 策略
 	selector.SetGlobalSelector(wrr.NewBuilder())
-	
+
 	if err != nil {
 		return &pb.GetVerifyCodeResponse{
 			Code: 500,
@@ -170,5 +172,27 @@ func (s *CustomerService) Logout(ctx context.Context, req *pb.LogoutRequest) (*p
 	return &pb.LogoutResponse{
 		Code: 200,
 		Message: "退出登录成功",
+	}, nil
+}
+
+func (s *CustomerService) EstimatePrice(ctx context.Context, req *pb.EstimatePriceRequest) (*pb.EstimatePriceResponse, error) {
+	total, err := s.CustomerBiz.GetEstimatePrice(ctx, req.Origin, req.Destination)
+
+	if err != nil {
+		log.Println(err)
+		return &pb.EstimatePriceResponse{
+			Message: "获取估价失败",
+			Origin: req.Origin,
+			Destination: req.Destination,
+			Price: total,
+			Code: 500,
+		}, nil
+	}
+	return &pb.EstimatePriceResponse{
+		Message: "获取估价成功",
+		Origin: req.Origin,
+		Destination: req.Destination,
+		Price: total,
+		Code: 200,
 	}, nil
 }

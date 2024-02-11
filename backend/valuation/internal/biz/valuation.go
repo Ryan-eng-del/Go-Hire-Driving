@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-kratos/kratos/contrib/registry/consul/v2"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/selector"
 	"github.com/go-kratos/kratos/v2/selector/wrr"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
@@ -78,6 +79,7 @@ func (*ValuationBiz)GetMapInfo(ctx context.Context, origin string, destination s
 			context.Background(),
 			grpc.WithEndpoint("discovery:///Map"),
 			grpc.WithDiscovery(consulDiscovery),
+			grpc.WithMiddleware(tracing.Client()),
 		)	
 
 		if err != nil {

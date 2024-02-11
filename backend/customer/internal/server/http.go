@@ -11,6 +11,7 @@ import (
 	"github.com/go-kratos/kratos/v2/log"
 	kratosJwt "github.com/go-kratos/kratos/v2/middleware/auth/jwt"
 	"github.com/go-kratos/kratos/v2/middleware/recovery"
+	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/golang-jwt/jwt/v4"
 
 	"github.com/go-kratos/kratos/v2/middleware/selector"
@@ -22,6 +23,7 @@ func NewHTTPServer(c *conf.Server, greeter *service.GreeterService, customerServ
 	var opts = []http.ServerOption{
 		http.Middleware(
 			recovery.Recovery(),
+			tracing.Server(),
 			selector.Server(AllowCORS(),kratosJwt.Server(func(token *jwt.Token) (interface{}, error) {
 				return []byte(biz.Secret), nil
 			}), ValidateJWT(customerService)).Match(func (ctx context.Context, operation string) bool {

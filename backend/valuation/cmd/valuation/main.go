@@ -16,6 +16,12 @@ import (
 	"github.com/go-kratos/kratos/v2/transport/http"
 	"github.com/google/uuid"
 	capi "github.com/hashicorp/consul/api"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/exporters/jaeger"
+	"go.opentelemetry.io/otel/sdk/resource"
+	tracesdk "go.opentelemetry.io/otel/sdk/trace"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 	_ "go.uber.org/automaxprocs"
 )
 
@@ -35,6 +41,8 @@ func init() {
 	flag.StringVar(&flagconf, "conf", "../../configs", "config path, eg: -conf config.yaml")
 }
 
+
+
 func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 	c := capi.DefaultConfig()
 	c.Address = "localhost:8500"
@@ -43,6 +51,10 @@ func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 		log.Info(err)
 	}
 	dis := consul.New(client)
+	err = initTracer("http://localhost:14268/api/traces")
+	if err != nil {
+		log.Info(err)
+	}
 	return kratos.New(
 		kratos.ID(id),
 		kratos.Name(Name),
@@ -56,6 +68,30 @@ func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 		kratos.Registrar(dis),
 	)
 }
+// 设置全局trace
+func initTracer(url string) error {
+	// 创建 Jaeger exporter
+	exp, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(url)))
+	if err != nil {
+			return err
+	}
+	tp := tracesdk.NewTracerProvider(
+			// 将基于父span的采样率设置为100%
+			tracesdk.WithSampler(tracesdk.ParentBased(tracesdk.TraceIDRatioBased(1.0))),
+			// 始终确保在生产中批量处理
+			tracesdk.WithBatcher(exp),
+			// 在资源中记录有关此应用程序的信息
+			tracesdk.WithResource(resource.NewSchemaless(
+					semconv.ServiceNameKey.String("Valuation"),
+					attribute.String("exporter", "jaeger"),
+					attribute.Float64("float", 312.23),
+			)),
+	)
+	otel.SetTracerProvider(tp)
+	return nil
+}
+
+
 
 func main() {
 	flag.Parse()

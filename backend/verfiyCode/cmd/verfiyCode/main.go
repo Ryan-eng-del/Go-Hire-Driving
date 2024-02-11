@@ -44,6 +44,7 @@ func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 		log.Info(err)
 	}
 	dis := consul.New(client)
+
 	return kratos.New(
 		kratos.ID(id),
 		kratos.Name(Name),
@@ -57,6 +58,7 @@ func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 		kratos.Registrar(dis),
 	)
 }
+
 
 func main() {
 	flag.Parse()

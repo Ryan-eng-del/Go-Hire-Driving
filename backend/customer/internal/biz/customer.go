@@ -6,6 +6,7 @@ import (
 	"database/sql"
 
 	"github.com/go-kratos/kratos/contrib/registry/consul/v2"
+	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/selector"
 	"github.com/go-kratos/kratos/v2/selector/wrr"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
@@ -52,12 +53,14 @@ func (b *CustomerBiz) GetEstimatePrice(ctx context.Context, origin, destination 
 		return 0, err
 	}
 	consulDiscovery := consul.New(consulClient)
+	
 	// 负载均衡 策略
 	selector.SetGlobalSelector(wrr.NewBuilder())
 	conn, err := grpc.DialInsecure(
 		context.Background(),
 		grpc.WithEndpoint("discovery:///Valuation"),
 		grpc.WithDiscovery(consulDiscovery),
+		grpc.WithMiddleware(tracing.Client()),
 	)	
 
 	if err != nil {

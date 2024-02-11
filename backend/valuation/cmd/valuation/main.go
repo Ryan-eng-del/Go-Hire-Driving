@@ -6,6 +6,7 @@ import (
 
 	"valuation/internal/conf"
 
+	"github.com/go-kratos/kratos/contrib/registry/consul/v2"
 	"github.com/go-kratos/kratos/v2"
 	"github.com/go-kratos/kratos/v2/config"
 	"github.com/go-kratos/kratos/v2/config/file"
@@ -13,20 +14,21 @@ import (
 	"github.com/go-kratos/kratos/v2/middleware/tracing"
 	"github.com/go-kratos/kratos/v2/transport/grpc"
 	"github.com/go-kratos/kratos/v2/transport/http"
-
+	"github.com/google/uuid"
+	capi "github.com/hashicorp/consul/api"
 	_ "go.uber.org/automaxprocs"
 )
 
 // go build -ldflags "-X main.Version=x.y.z"
 var (
 	// Name is the name of the compiled software.
-	Name string
+	Name string = "Valuation"
 	// Version is the version of the compiled software.
-	Version string
+	Version string = "1.0.0"
 	// flagconf is the config flag.
 	flagconf string
 
-	id, _ = os.Hostname()
+	id = Name + "-" + uuid.NewString()
 )
 
 func init() {
@@ -34,6 +36,13 @@ func init() {
 }
 
 func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
+	c := capi.DefaultConfig()
+	c.Address = "localhost:8500"
+	client, err  := capi.NewClient(c)
+	if err != nil {
+		log.Info(err)
+	}
+	dis := consul.New(client)
 	return kratos.New(
 		kratos.ID(id),
 		kratos.Name(Name),
@@ -44,6 +53,7 @@ func newApp(logger log.Logger, gs *grpc.Server, hs *http.Server) *kratos.App {
 			gs,
 			hs,
 		),
+		kratos.Registrar(dis),
 	)
 }
 

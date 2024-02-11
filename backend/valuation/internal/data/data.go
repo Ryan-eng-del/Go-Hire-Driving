@@ -43,4 +43,22 @@ func migrateTable(d *Data) {
 	if err := d.mysqlClient.AutoMigrate(biz.PriceRule{}); err != nil {
 		log.Info(err)
 	}
+
+	// pr := []biz.PriceRule{
+	// 	{Model: gorm.Model{ID: 1},
+	// 	CityID: 1,
+	// 	StartFee: 300,
+	// 	DistanceFee: 35,
+	// 	DurationFee: 10,
+	// 	StartAt: 7,
+	// 	EndedAt: 23,},
+	// 	{Model: gorm.Model{ID: 2},
+	// 	CityID: 1,
+	// 	StartFee: 100,
+	// 	DistanceFee: 15,
+	// 	DurationFee: 5,
+	// 	StartAt: 6,
+	// 	EndedAt: 23,},
+	// }
+	// d.mysqlClient.Create(&pr)
 }

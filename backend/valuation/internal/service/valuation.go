@@ -19,11 +19,18 @@ func NewValuationService(valuationBiz *biz.ValuationBiz) *ValuationService {
 }
 
 func (s *ValuationService) GetEstimatePrice(ctx context.Context, req *pb.GetEstimatePriceRequest) (*pb.GetEstimatePriceReply, error) {
-	duration, distance, err := biz.GetMapInfo(ctx, req.Origin, req.Destination)
-	if  err != nil {
+	duration, distance, err := s.valuationBiz.GetMapInfo(ctx, req.Origin, req.Destination)
+	if err != nil {
 		log.Println(err)
 	}
-	
-	log.Println(duration, distance)
-	return &pb.GetEstimatePriceReply{}, nil
+	total, err := s.valuationBiz.GetPrice(ctx, duration, distance, 1, 6)
+
+	if err != nil {
+		log.Println(err)
+	}
+	return &pb.GetEstimatePriceReply{
+		Price: total,
+		Origin: req.Origin,
+		Destination: req.Destination,
+	}, nil
 }

@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"strconv"
 	mapService "valuation/api/map"
 
 	"github.com/go-kratos/kratos/contrib/registry/consul/v2"
@@ -25,8 +26,8 @@ type PriceRule struct {
 	StartFee int64 `json:"start_fee"`
 	DistanceFee int64 `json:"distance_fee"`
 	DurationFee int64 `json:"duration_fee"`
-	StartAt int `json:"start_at"`
-	EndedAt int `json:"ended_at"`
+	StartAt int64 `json:"start_at"`
+	EndedAt int64 `json:"ended_at"`
 }
 
 type ValuationRepo interface {
@@ -39,7 +40,30 @@ func NewValuationBiz(repo ValuationRepo, logger log.Logger) *ValuationBiz {
 }
 
 
-func GetMapInfo(ctx context.Context, origin string, destination string) (duration, distance string, err error) {
+func (vbz *ValuationBiz) GetPrice(ctx context.Context, duration, distance string, cityId, current int) (price int64, err error) {
+	rule, err := vbz.repo.GetRule(cityId, current)
+	if err != nil {
+		return
+	}
+	distanceInt64, err := strconv.ParseInt(distance, 10, 64)
+	if err != nil {
+		return
+	}
+	durationInt64, err := strconv.ParseInt(duration, 10, 64)
+
+	if err != nil {
+		return
+	}
+	//km
+	distanceInt64 /= 1000
+	// minute
+	durationInt64 /= 60
+	var startDistance int64 = 5
+	price = rule.StartFee + rule.DistanceFee*(distanceInt64-startDistance) + rule.DurationFee*durationInt64
+	return 
+}
+
+func (*ValuationBiz)GetMapInfo(ctx context.Context, origin string, destination string) (duration, distance string, err error) {
 		// 服务间通信 grpc
 		consulConfig := api.DefaultConfig()
 		consulConfig.Address = "localhost:8500"

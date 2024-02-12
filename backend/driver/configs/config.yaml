@@ -1,0 +1,21 @@
+server:
+  http:
+    addr: 0.0.0.0:8006
+    timeout: 1s
+  grpc:
+    addr: 0.0.0.0:9006
+    timeout: 1s
+  consul:
+    addr: 127.0.0.1:8085
+  jaeger:
+    addr: 127.0.0.1:14268
+data:
+  database:
+    driver: mysql
+    source: root:123456@tcp(127.0.0.1:3307)/hire-drive?charset=utf8mb4&parseTime=True&loc=Local
+  redis:
+    addr: 127.0.0.1:6380
+    user: default
+    password: "123456"
+    read_timeout: 0.2s
+    write_timeout: 0.2s

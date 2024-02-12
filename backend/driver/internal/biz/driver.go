@@ -1,6 +1,9 @@
 package biz
 
-import "context"
+import (
+	"context"
+	"regexp"
+)
 
 
 type DriverBiz struct {
@@ -14,10 +17,21 @@ func NewDriverBiz(d DriverImpl) *DriverBiz {
 }
 
 type DriverImpl interface {
-	SetVerifyCode(ctx context.Context, telephone string) (error)
+	GetVerifyCode(ctx context.Context, telephone string) (string, error)
 }
 
-func (dbz *DriverBiz) GetVerifyCode(ctx context.Context,telephone string) (string, error) {
-	dbz.driverData.SetVerifyCode(ctx, telephone)
-	return "", nil
+func (dbz *DriverBiz) GetVerifyCode(ctx context.Context,telephone string) (code string, err error) {
+	pattern := `^1[34578]\d{9}$`
+
+	regexPattern := regexp.MustCompile(pattern)
+
+	if !regexPattern.MatchString(telephone) {
+		return
+	}
+	
+	code, err = dbz.driverData.GetVerifyCode(ctx, telephone)
+	if err != nil {
+		return
+	}
+	return
 }

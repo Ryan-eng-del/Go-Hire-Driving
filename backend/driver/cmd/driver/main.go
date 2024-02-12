@@ -45,6 +45,7 @@ func newApp(conf *conf.Service, logger log.Logger, gs *grpc.Server, hs *http.Ser
 	consul, err := initConsul(conf.Consul.Addr)
 
 	if err != nil {
+		log.Info(err)
 		log.Fatal(err)
 	}
 
@@ -89,7 +90,7 @@ func initTracer(address string) error {
 			tracesdk.WithBatcher(exp),
 			// 在资源中记录有关此应用程序的信息
 			tracesdk.WithResource(resource.NewSchemaless(
-					semconv.ServiceNameKey.String("Valuation"),
+					semconv.ServiceNameKey.String("Driver"),
 					attribute.String("exporter", "jaeger"),
 					attribute.Float64("float", 312.23),
 			)),

@@ -31,7 +31,7 @@ func wireApp(confService *conf.Service, confServer *conf.Server, confData *conf.
 	greeterRepo := data.NewGreeterRepo(dataData, logger)
 	greeterUsecase := biz.NewGreeterUsecase(greeterRepo, logger)
 	greeterService := service.NewGreeterService(greeterUsecase)
-	driverImpl := data.NewDriverRepo(dataData)
+	driverImpl := data.NewDriverRepo(dataData, confService)
 	driverBiz := biz.NewDriverBiz(driverImpl)
 	driverService := service.NewDriverService(driverBiz)
 	grpcServer := server.NewGRPCServer(confServer, greeterService, driverService, logger)
